@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nextjs-jwt-auth-app
+  namespace: da
+  labels:
+    app: nextjs-jwt-auth-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nextjs-jwt-auth-app
+  template:
+    metadata:
+      labels:
+        app: nextjs-jwt-auth-app
+    spec:
+      containers:
+      - name: nextjs-app
+        image: ghcr.io/akash202k/nextjs-jwt-auth-app:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3000"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: database-url
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: jwt-secret
+        - name: NEXTAUTH_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: nextauth-secret
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
