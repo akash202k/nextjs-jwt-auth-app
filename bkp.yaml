@@ -1,0 +1,43 @@
+# ---------- Build stage ----------
+  FROM node:18-bookworm-slim AS builder
+  ENV CI=true
+  WORKDIR /app
+  
+  COPY package.json package-lock.json* ./
+  RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
+  
+# Copy schema and generate Prisma client FOR linux-arm64
+COPY prisma ./prisma
+# ensure we don't reuse any host-generated client (but keep @prisma/engines needed by CLI)
+RUN rm -rf node_modules/.prisma node_modules/@prisma/client
+# Set a dummy DATABASE_URL for MongoDB (required for prisma generate with MongoDB)
+ENV DATABASE_URL="mongodb://dummy:27017/dummy"
+# (schema controls targets; this env is optional but harmless)
+ENV PRISMA_CLI_BINARY_TARGETS=linux-arm64-openssl-3.0.x
+RUN npx prisma generate
+  
+  # Now bring in the rest and build Next.js
+  COPY . .
+  RUN npm run build
+  
+  # ---------- Runtime stage ----------
+  FROM node:18-bookworm-slim AS runner
+  WORKDIR /app
+  ENV NODE_ENV=production
+  ENV PORT=3000
+  
+  RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+  
+  # 1) Bring in Next standalone server
+  COPY --from=builder /app/.next/standalone ./
+  COPY --from=builder /app/.next/static ./.next/static
+  # 2) Bring in Prisma runtime bits explicitly (required!)
+  COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+  COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+  # If you later add /public:
+  # COPY --from=builder /app/public ./public
+  
+  EXPOSE 3000
+  CMD ["node", "server.js"]
+  

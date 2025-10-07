@@ -1,24 +1,12 @@
-name: Build and Push Docker Image - Organization
+name: Build and Push Docker Image
 
 on:
   push:
     branches: [ main ]
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Target environment'
-        required: true
-        default: 'production'
-        type: choice
-        options:
-        - production
-        - staging
-        - development
 
 env:
   REGISTRY: ghcr.io
-  ORGANIZATION: your-org-name
-  IMAGE_NAME: ${{ github.event.repository.name }}
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build-and-push:
@@ -45,18 +33,20 @@ jobs:
       id: meta
       uses: docker/metadata-action@v5
       with:
-        images: ${{ env.REGISTRY }}/${{ env.ORGANIZATION }}/${{ env.IMAGE_NAME }}
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
         tags: |
-          type=raw,value=latest,enable={{is_default_branch}}
-          type=raw,value=${{ github.event.inputs.environment || 'production' }}
           type=ref,event=branch
+          type=ref,event=pr
           type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
 
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
       with:
         context: .
-        platforms: linux/amd64,linux/arm64
+        # Build for AMD64 only (Alpine + Next.js SWC has issues with ARM64)
+        # AMD64 images work on both Intel and Apple Silicon (via emulation)
+        platforms: linux/amd64
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
