@@ -44,9 +44,8 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: .
-        # Build for AMD64 only (Alpine + Next.js SWC has issues with ARM64)
-        # AMD64 images work on both Intel and Apple Silicon (via emulation)
-        platforms: linux/amd64
+        # Build for both AMD64 and ARM64
+        platforms: linux/amd64,linux/arm64
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}

@@ -3,7 +3,10 @@ version: '3.8'
 services:
 
   app:
-    image: nextjs-jwt-auth-app:latest
+    # Use image from GitHub Container Registry
+    image: ghcr.io/akash202k/nextjs-jwt-auth-app:latest
+    # For Apple Silicon, specify AMD64 platform
+    platform: linux/amd64
     container_name: nextjs-app
     restart: unless-stopped
     ports:
@@ -12,8 +15,7 @@ services:
     env_file:
       - .env
     environment:
-      # Override specific variables if needed
-      DATABASE_URL: "mongodb+srv://akash:DVJ4k8fSb0qey3oe@akash-play.zay1bq8.mongodb.net/devops-assignment"
+      # Override specific variables if needed (optional)
       NODE_ENV: production
     networks:
       - app-network

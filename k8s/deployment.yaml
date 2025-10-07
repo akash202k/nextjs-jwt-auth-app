@@ -15,47 +15,17 @@ spec:
       labels:
         app: nextjs-jwt-auth-app
     spec:
+      # Uncomment if image is private (need to create ghcr-secret first)
+      # imagePullSecrets:
+      # - name: ghcr-secret
       containers:
       - name: nextjs-app
         image: ghcr.io/akash202k/nextjs-jwt-auth-app:latest
         ports:
         - containerPort: 3000
-        env:
-        - name: NODE_ENV
-          value: "production"
-        - name: PORT
-          value: "3000"
-        - name: DATABASE_URL
-          valueFrom:
-            secretKeyRef:
-              name: app-secrets
-              key: database-url
-        - name: JWT_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: app-secrets
-              key: jwt-secret
-        - name: NEXTAUTH_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: app-secrets
-              key: nextauth-secret
-        livenessProbe:
-          httpGet:
-            path: /api/health
-            port: 3000
-          initialDelaySeconds: 30
-          periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 3
-        readinessProbe:
-          httpGet:
-            path: /api/health
-            port: 3000
-          initialDelaySeconds: 5
-          periodSeconds: 5
-          timeoutSeconds: 3
-          failureThreshold: 3
+        envFrom:
+        - secretRef:
+            name: app-secrets
         resources:
           requests:
             memory: "256Mi"

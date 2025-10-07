@@ -2,6 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: nextjs-jwt-auth-app-ingress
+  namespace: da
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
