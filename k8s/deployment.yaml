@@ -6,7 +6,7 @@ metadata:
   labels:
     app: nextjs-jwt-auth-app
 spec:
-  replicas: 3
+  replicas: 2
   selector:
     matchLabels:
       app: nextjs-jwt-auth-app
@@ -15,9 +15,6 @@ spec:
       labels:
         app: nextjs-jwt-auth-app
     spec:
-      # Uncomment if image is private (need to create ghcr-secret first)
-      # imagePullSecrets:
-      # - name: ghcr-secret
       containers:
       - name: nextjs-app
         image: ghcr.io/akash202k/nextjs-jwt-auth-app:latest

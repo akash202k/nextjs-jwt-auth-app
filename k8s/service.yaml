@@ -6,7 +6,7 @@ metadata:
   labels:
     app: nextjs-jwt-auth-app
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   ports:
   - port: 80
     targetPort: 3000
